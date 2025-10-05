@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Запросить ключ - keySecret{% endblock %}
+
+{% block content %}
+<div class="share-key-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-share"></i>
+            Запросить ключ
+        </h1>
+        <p class="page-subtitle">Отправьте запрос на доступ к мастер-ключу</p>
+    </div>
+
+    <div class="form-section">
+        <div class="form-card">
+            <form method="POST" class="share-form">
+                <div class="form-group">
+                    <label for="target_username">
+                        <i class="fas fa-user"></i>
+                        Имя пользователя получателя
+                    </label>
+                    <input type="text" id="target_username" name="target_username" required 
+                           placeholder="Введите имя пользователя...">
+                </div>
+
+                <div class="info-section">
+                    <div class="info-card">
+                        <h4>
+                            <i class="fas fa-info-circle"></i>
+                            Информация
+                        </h4>
+                        <ul>
+                            <li>Пользователь получит уведомление о запросе</li>
+                            <li>Вы сможете использовать его мастер-ключ после одобрения</li>
+                            <li>Будьте осторожны при предоставлении доступа</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Отправить запрос
+                    </button>
+                    <a href="{{ url_for('master_keys') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

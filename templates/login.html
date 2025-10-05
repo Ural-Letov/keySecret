@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - keySecret{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>keySecret</h1>
+            </div>
+            <p class="subtitle">Безопасное хранение паролей</p>
+        </div>
+
+        <form method="POST" class="login-form">
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i>
+                    Имя пользователя
+                </label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Введите имя пользователя...">
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i>
+                    Пароль
+                </label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Введите пароль...">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" style="order: 1;">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Войти
+                </button>
+                <a href="{{ url_for('register') }}" class="btn btn-secondary" style="order: 2;">
+                    <i class="fas fa-user-plus"></i>
+                    Регистрация
+                </a>
+            </div>
+        </form>
+
+        <div class="login-hint">
+            <i class="fas fa-lightbulb"></i>
+            <span>Нет аккаунта? Нажмите 'Регистрация' для создания нового</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

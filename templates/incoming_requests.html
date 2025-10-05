@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Входящие запросы - keySecret{% endblock %}
+
+{% block content %}
+<div class="incoming-requests-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-inbox"></i>
+            Входящие запросы
+        </h1>
+        <p class="page-subtitle">Просмотрите и одобрите запросы на доступ к вашему мастер-ключу</p>
+    </div>
+
+    <div class="requests-section">
+        <div class="requests-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                Список запросов
+            </h3>
+        </div>
+
+        <div class="requests-list">
+            {% if requests %}
+                {% for request in requests %}
+                <div class="request-card">
+                    <div class="request-header">
+                        <div class="request-from">
+                            <i class="fas fa-user"></i>
+                            От: {{ request[1] }}
+                        </div>
+                        <div class="request-status status-{{ request[2] }}">
+                            {% if request[2] == 'accepted' %}
+                                <i class="fas fa-check-circle"></i>
+                                Принят
+                            {% elif request[2] == 'pending' %}
+                                <i class="fas fa-clock"></i>
+                                Ожидает
+                            {% else %}
+                                <i class="fas fa-times-circle"></i>
+                                Отклонен
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="request-details">
+                        <div class="request-id">
+                            <strong>ID запроса:</strong> {{ request[0] }}
+                        </div>
+                        <div class="request-status-text">
+                            <strong>Статус:</strong> {{ request[2] }}
+                        </div>
+                    </div>
+                    {% if request[2] == 'pending' %}
+                    <div class="request-actions">
+                        <form method="POST" action="{{ url_for('respond_request') }}" style="display: inline;">
+                            <input type="hidden" name="request_id" value="{{ request[0] }}">
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="btn btn-success btn-small">
+                                <i class="fas fa-check"></i>
+                                Принять
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('respond_request') }}" style="display: inline;">
+                            <input type="hidden" name="request_id" value="{{ request[0] }}">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-danger btn-small">
+                                <i class="fas fa-times"></i>
+                                Отклонить
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-requests">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Нет входящих запросов</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

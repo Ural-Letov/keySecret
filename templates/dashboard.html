@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления - keySecret{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="welcome-section">
+        <h1 class="welcome-title">
+            <i class="fas fa-hand-wave"></i>
+            Добро пожаловать, {{ username }}!
+        </h1>
+        <p class="welcome-subtitle">Управляйте своими паролями безопасно</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3>Поиск кошельков</h3>
+            <p>Найдите и просмотрите ваши сохраненные кошельки</p>
+            <a href="{{ url_for('wallets') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Перейти
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h3>Создать кошелек</h3>
+            <p>Добавьте новый кошелек в вашу коллекцию</p>
+            <a href="{{ url_for('create_wallet') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Создать
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <h3>Мастер-ключи</h3>
+            <p>Управляйте доступом к вашим данным</p>
+            <a href="{{ url_for('master_keys') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Управление
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-share"></i>
+            </div>
+            <h3>Запросить ключ</h3>
+            <p>Отправьте запрос на общий доступ к ключу</p>
+            <a href="{{ url_for('share_key') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Запросить
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3>Входящие запросы</h3>
+            <p>Просмотрите и одобрите запросы на ваш ключ</p>
+            <a href="{{ url_for('incoming_requests') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Просмотреть
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h3>Настройки</h3>
+            <p>Настройки приложения и профиля</p>
+            <button class="btn btn-secondary" onclick="showSettings()">
+                <i class="fas fa-arrow-right"></i>
+                Настройки
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showSettings() {
+    alert('🔧 Настройки будут добавлены в следующей версии!');
+}
+</script>
+{% endblock %}

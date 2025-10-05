@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Кошельки - keySecret{% endblock %}
+
+{% block content %}
+<div class="wallets-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-wallet"></i>
+            Поиск кошельков
+        </h1>
+        <p class="page-subtitle">Найдите и управляйте своими кошельками</p>
+    </div>
+
+    <div class="search-section">
+        <div class="search-card">
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="name_filter">
+                        <i class="fas fa-search"></i>
+                        Название кошелька (поиск)
+                    </label>
+                    <input type="text" id="name_filter" name="name_filter" 
+                           placeholder="Введите название для поиска...">
+                </div>
+
+                <div class="form-group">
+                    <label for="master_key">
+                        <i class="fas fa-key"></i>
+                        Полный мастер-ключ для дешифровки
+                    </label>
+                    <input type="text" id="master_key" name="master_key" 
+                           value="{{ session.master_key }}" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Поиск / Обновить
+                    </button>
+                    <a href="{{ url_for('create_wallet') }}" class="btn btn-success">
+                        <i class="fas fa-plus"></i>
+                        Создать новый
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="results-section">
+        <div class="results-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                Результаты поиска
+            </h3>
+        </div>
+
+        <div id="walletsResults" class="wallets-results">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Загрузка...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    searchWallets();
+});
+
+function searchWallets() {
+    const formData = new FormData(document.getElementById('searchForm'));
+    const resultsDiv = document.getElementById('walletsResults');
+    
+    resultsDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><span>Поиск...</span></div>';
+    
+    fetch('{{ url_for("search_wallets_api") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayWallets(data);
+    })
+    .catch(error => {
+        resultsDiv.innerHTML = '<div class="error">Ошибка при поиске кошельков</div>';
+    });
+}
+
+function displayWallets(wallets) {
+    const resultsDiv = document.getElementById('walletsResults');
+    
+    if (wallets.length === 0) {
+        resultsDiv.innerHTML = '<div class="no-results">🔍 Ничего не найдено</div>';
+        return;
+    }
+    
+    let html = '';
+    wallets.forEach(wallet => {
+        if (wallet.decrypted) {
+            html += `
+                <div class="wallet-card">
+                    <div class="wallet-header">
+                        <h4><i class="fas fa-wallet"></i> ${wallet.name}</h4>
+                        <span class="status success"><i class="fas fa-unlock"></i> Дешифровано</span>
+                    </div>
+                    <div class="wallet-details">
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-user"></i> Логин:</span>
+                            <span class="value">${wallet.login}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-lock"></i> Пароль:</span>
+                            <span class="value password-field" data-password="${wallet.password}">
+                                <span class="password-text">••••••••</span>
+                                <button class="btn btn-small" onclick="togglePassword(this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-globe"></i> Хост:</span>
+                            <span class="value">${wallet.host}</span>
+                        </div>
+                    </div>
+                    <div class="wallet-actions">
+                        <button class="btn btn-primary btn-small" onclick="copyPassword('${wallet.password}')">
+                            <i class="fas fa-copy"></i> Копировать пароль
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="wallet-card">
+                    <div class="wallet-header">
+                        <h4><i class="fas fa-wallet"></i> *** (зашифровано)</h4>
+                        <span class="status error"><i class="fas fa-lock"></i> Не расшифровано</span>
+                    </div>
+                    <div class="wallet-details">
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-user"></i> Логин:</span>
+                            <span class="value">***</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-lock"></i> Пароль:</span>
+                            <span class="value">***</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label"><i class="fas fa-globe"></i> Хост:</span>
+                            <span class="value">***</span>
+                        </div>
+                    </div>
+                    <div class="wallet-note">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Неверный мастер-ключ для дешифровки
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    resultsDiv.innerHTML = html;
+}
+
+function togglePassword(button) {
+    const passwordField = button.closest('.password-field');
+    const passwordText = passwordField.querySelector('.password-text');
+    const icon = button.querySelector('i');
+    const password = passwordField.dataset.password;
+    
+    if (passwordText.textContent === '••••••••') {
+        passwordText.textContent = password;
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        passwordText.textContent = '••••••••';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+function copyPassword(password) {
+    navigator.clipboard.writeText(password).then(() => {
+        alert('📋 Пароль скопирован в буфер обмена!');
+    }).catch(() => {
+        alert('❌ Ошибка при копировании пароля');
+    });
+}
+
+// Загружаем кошельки при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    searchWallets();
+});
+</script>
+{% endblock %}

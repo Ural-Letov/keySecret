@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Мастер-ключи - keySecret{% endblock %}
+
+{% block content %}
+<div class="master-keys-page">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-key"></i>
+            Управление мастер-ключами
+        </h1>
+        <p class="page-subtitle">Просматривайте и управляйте доступом к вашим данным</p>
+    </div>
+
+    <div class="keys-section">
+        <!-- Ваш мастер-ключ -->
+        <div class="key-card">
+            <div class="key-header">
+                <h3>
+                    <i class="fas fa-lock"></i>
+                    Ваш мастер-ключ
+                </h3>
+            </div>
+            <div class="key-content">
+                <div class="key-display">
+                    <input type="text" value="{{ master_key }}" readonly class="key-input">
+                    <button class="btn btn-primary btn-small" onclick="copyMasterKey()">
+                        <i class="fas fa-copy"></i>
+                        Копировать
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Общие мастер-ключи -->
+        <div class="shared-keys-section">
+            <div class="section-header">
+                <h3>
+                    <i class="fas fa-share-alt"></i>
+                    Общие мастер-ключи
+                </h3>
+                <a href="{{ url_for('share_key') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Запросить ключ
+                </a>
+            </div>
+
+            <div class="shared-keys-list">
+                {% if shared_keys %}
+                    {% for key_data in shared_keys %}
+                    <div class="shared-key-card">
+                        <div class="key-info">
+                            <div class="key-user">
+                                <i class="fas fa-user"></i>
+                                {{ key_data[0] }}
+                            </div>
+                            <div class="key-status {{ 'accepted' if key_data[2] == 'accepted' else 'pending' }}">
+                                {% if key_data[2] == 'accepted' %}
+                                    <i class="fas fa-check-circle"></i>
+                                    Принят
+                                {% else %}
+                                    <i class="fas fa-clock"></i>
+                                    Ожидает
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="key-details">
+                            <div class="key-value">
+                                <strong>Ключ:</strong> {{ key_data[1] }}
+                            </div>
+                            {% if key_data[2] == 'accepted' %}
+                            <div class="key-actions">
+                                <button class="btn btn-primary btn-small" onclick="copySharedKey('{{ key_data[1] }}')">
+                                    <i class="fas fa-copy"></i>
+                                    Копировать ключ
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-keys">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Нет общих мастер-ключей</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyMasterKey() {
+    const masterKey = '{{ master_key }}';
+    navigator.clipboard.writeText(masterKey).then(() => {
+        alert('📋 Мастер-ключ скопирован в буфер обмена!');
+    }).catch(() => {
+        alert('❌ Ошибка при копировании ключа');
+    });
+}
+
+function copySharedKey(key) {
+    navigator.clipboard.writeText(key).then(() => {
+        alert('📋 Ключ скопирован в буфер обмена!');
+    }).catch(() => {
+        alert('❌ Ошибка при копировании ключа');
+    });
+}
+</script>
+{% endblock %}
