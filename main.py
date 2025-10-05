@@ -6,6 +6,11 @@ import threading
 import json
 from urllib.parse import urlparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import webbrowser
+import time
+import socket
+from urllib import request as urlrequest
+from urllib import error as urlerror
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -1085,12 +1090,44 @@ class App(tk.Tk):
             pass
 
     def start_server(self):
-        def run_server():
-            server = HTTPServer(("localhost", 8080), SimpleHandler)
-            logging.info("HTTP-сервер запущен на http://localhost:8080")
-            server.serve_forever()
+        def is_port_open(host: str, port: int) -> bool:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(0.5)
+                return sock.connect_ex((host, port)) == 0
 
-        threading.Thread(target=run_server, daemon=True).start()
+        def run_flask():
+            try:
+                # Импортируем здесь, чтобы избежать влияния на время старта GUI
+                from web_app import app as flask_app
+                # Запускаем без перезагрузчика, в одном процессе
+                flask_app.run(debug=False, host='127.0.0.1', port=5000, use_reloader=False, threaded=True)
+            except Exception:
+                logging.exception("Не удалось запустить Flask-сервер")
+
+        def open_browser_when_ready(url: str, timeout_seconds: int = 20):
+            start_time = time.time()
+            while time.time() - start_time < timeout_seconds:
+                try:
+                    with urlrequest.urlopen(url, timeout=1):
+                        webbrowser.open(url)
+                        logging.info("Открыл браузер: %s", url)
+                        return
+                except (urlerror.URLError, urlerror.HTTPError, TimeoutError, ConnectionError, OSError):
+                    time.sleep(0.5)
+            logging.warning("Не удалось дождаться готовности сервера по адресу %s", url)
+
+        host, port = '127.0.0.1', 5000
+        server_url = f"http://{host}:{port}"
+
+        if is_port_open(host, port):
+            logging.info("Flask уже запущен на %s — пропускаю старт", server_url)
+            threading.Thread(target=open_browser_when_ready, args=(server_url,), daemon=True).start()
+            return
+
+        # Запускаем Flask в фоне
+        threading.Thread(target=run_flask, daemon=True).start()
+        # И в отдельном потоке ждём готовности и открываем браузер
+        threading.Thread(target=open_browser_when_ready, args=(server_url,), daemon=True).start()
 
 
 if __name__ == "__main__":

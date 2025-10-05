@@ -65,15 +65,22 @@
                             </div>
                         </div>
                         <div class="key-details">
+                            {% if key_data[2] == 'accepted' %}
                             <div class="key-value">
                                 <strong>Ключ:</strong> {{ key_data[1] }}
                             </div>
-                            {% if key_data[2] == 'accepted' %}
                             <div class="key-actions">
                                 <button class="btn btn-primary btn-small" onclick="copySharedKey('{{ key_data[1] }}')">
                                     <i class="fas fa-copy"></i>
                                     Копировать ключ
                                 </button>
+                            </div>
+                            {% else %}
+                            <div class="key-value">
+                                <strong>Ключ:</strong> <em>скрыт до одобрения</em>
+                            </div>
+                            <div class="key-hint">
+                                Доступ будет предоставлен после одобрения запроса владельцем.
                             </div>
                             {% endif %}
                         </div>

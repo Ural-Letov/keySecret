@@ -4,8 +4,19 @@ import hashlib
 import base64
 from cryptography.fernet import Fernet, InvalidToken
 import bcrypt
+import os
 
-DB_NAME = 'users.db'
+def _resolve_db_path() -> str:
+    """Возвращает абсолютный путь к users.db, корректный и при запуске из .py, и из PyInstaller .exe.
+
+    - В режиме PyInstaller (атрибут sys._MEIPASS) кладем БД рядом с исполняемым файлом.
+    - В обычном режиме — рядом с исходниками (корень проекта).
+    """
+    # Определяем базовую директорию: рядом с исполняемым файлом/скриптом
+    base_dir = os.path.dirname(os.path.abspath(getattr(__import__('__main__'), '__file__', __file__)))
+    return os.path.join(base_dir, 'users.db')
+
+DB_NAME = _resolve_db_path()
 
 
 
@@ -162,9 +173,16 @@ def get_shared_master_keys(username):
     JOIN users u ON r.to_user = u.username
     WHERE r.from_user = ?
     ''', (username,))
-    results = cursor.fetchall()
+    rows = cursor.fetchall()
     conn.close()
-    return results
+
+    # Безопасность: не возвращаем значение мастер-ключа до одобрения
+    sanitized = []
+    for row in rows:
+        to_username, master_key, status = row
+        visible_key = master_key if status == 'accepted' else None
+        sanitized.append((to_username, visible_key, status))
+    return sanitized
 
 
 

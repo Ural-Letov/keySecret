@@ -76,6 +76,59 @@ def test_registration():
         print(f"❌ Ошибка тестирования: {e}")
         return False
 
+def test_shared_key_visibility():
+    """Ключ не выдаётся при pending и доступен после accept"""
+    try:
+        from init_db import DB_NAME, send_master_key_request, respond_to_request, get_shared_master_keys
+        from web_app import add_user, check_user
+        import sqlite3
+
+        requester = "req_user"
+        owner = "own_user"
+        pwd = "test123"
+
+        # Очистим пользователей и запросы
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM master_key_requests WHERE from_user=? OR to_user=?", (requester, requester))
+        cur.execute("DELETE FROM master_key_requests WHERE from_user=? OR to_user=?", (owner, owner))
+        cur.execute("DELETE FROM users WHERE username IN (?, ?)", (requester, owner))
+        conn.commit()
+        conn.close()
+
+        # Создадим пользователей
+        assert add_user(requester, pwd)
+        assert add_user(owner, pwd)
+        assert check_user(requester, pwd)
+        assert check_user(owner, pwd)
+
+        # Отправим запрос
+        assert send_master_key_request(requester, owner)
+
+        # Проверим: ключ скрыт (None)
+        shared = get_shared_master_keys(requester)
+        assert shared and shared[0][2] == 'pending'
+        assert shared[0][1] is None
+
+        # Найдём id запроса и примем его
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM master_key_requests WHERE from_user=? AND to_user=? ORDER BY id DESC LIMIT 1", (requester, owner))
+        req_id = cur.fetchone()[0]
+        conn.close()
+        respond_to_request(req_id, True)
+
+        # Теперь ключ должен быть видим
+        shared2 = get_shared_master_keys(requester)
+        assert shared2 and shared2[0][2] == 'accepted'
+        assert shared2[0][1] is not None
+
+        print("✅ Видимость общего мастер-ключа работает корректно")
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка проверки видимости ключа: {e}")
+        return False
+
 def main():
     """Основная функция тестирования"""
     print("🧪 Тестирование веб-приложения keySecret")
@@ -84,7 +137,8 @@ def main():
     tests = [
         ("Импорты", test_imports),
         ("База данных", test_database),
-        ("Регистрация", test_registration)
+        ("Регистрация", test_registration),
+        ("Видимость общего мастер-ключа", test_shared_key_visibility)
     ]
     
     passed = 0

@@ -1,21 +1,9 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-import sqlite3
-import secrets
-import hashlib
-import base64
-from cryptography.fernet import Fernet, InvalidToken
-import bcrypt
 import os
 from functools import wraps
 
-DB_NAME = 'users.db'
-
-# Flask app
-app = Flask(__name__)
-app.secret_key = os.environ.get('KS_SECRET_KEY', 'your-secret-key-change-this-in-production')
-
-# Использовать общие функции доступа к БД из `init_db.py`, чтобы десктопная
-# и веб-часть работали с одной реализацией и одним файлом БД.
+# Единый источник данных/логики: используем функции из init_db.py,
+# чтобы сайт и GUI работали с одной и той же БД и правилами
 from init_db import (
     create_db,
     create_wallets_table,
@@ -28,13 +16,11 @@ from init_db import (
     get_received_requests,
     respond_to_request,
     get_shared_master_keys,
-    encrypt_data,
-    decrypt_data,
-    generate_master_key,
 )
 
-# Примечание: `init_db.py` при импорте уже создаёт таблицы (create_db и т.д.),
-# поэтому явный вызов создания таблиц в `web_app.py` не обязателен.
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-change-this-in-production'
+
 
 # --- ДЕКОРАТОРЫ ---
 
